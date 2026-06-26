@@ -65,4 +65,8 @@ class PostVote(BaseModel):
         from_attributes = True
         
         
+class FollowRequest(BaseModel):
+    user_id: int
+    dir: Literal[0, 1];
+
 

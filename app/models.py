@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, TIMESTAMP, text
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -72,4 +72,28 @@ class Vote(Base):
         ForeignKey("posts.id", ondelete="CASCADE"),
         primary_key=True
     )
+    
 
+class Follow(Base):
+    __tablename__ = "follows"
+    
+    follower_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True
+    )
+    
+    following_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True
+    )
+    
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=text("now()")
+    )
+
+
+    
