@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, TIMESTAMP, text
 from sqlalchemy.orm import relationship
 from .database import Base
+from sqlalchemy.sql import func
 
 class User(Base):
     __tablename__ = "users"
@@ -25,6 +26,14 @@ class User(Base):
         String,
         nullable=False
     )
+    
+    posts = relationship(
+    "Post",
+    back_populates="owner",
+    cascade="all, delete"
+    )
+    
+    
     
 class Post(Base):
     __tablename__ = "posts"
@@ -55,7 +64,25 @@ class Post(Base):
         ForeignKey("users.id"),
         nullable=False
     )
-    owner = relationship("User")
+    
+    created_at = Column(
+    TIMESTAMP(timezone=True),
+    nullable=False,
+    server_default=func.now()
+)
+    
+    owner = relationship(
+    "User",
+    back_populates="posts"
+    )
+    
+    votes = relationship(
+    "Vote",
+    back_populates="post",
+    cascade="all, delete"
+    )
+    
+    
     
 
 class Vote(Base):
@@ -71,6 +98,11 @@ class Vote(Base):
         Integer,
         ForeignKey("posts.id", ondelete="CASCADE"),
         primary_key=True
+    )
+    
+    post = relationship(
+    "Post",
+    back_populates="votes"
     )
     
 
