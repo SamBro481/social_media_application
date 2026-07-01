@@ -55,3 +55,38 @@ def get_users(db: Session = Depends(database.get_db)):
     
     return users
 
+
+@router.get("/{id}/followers", response_model=List[schemas.UserResponse])
+def get_followers(
+    id: int,
+    db: Session = Depends(database.get_db)
+):
+    followers = (
+        db.query(models.User)
+        .join(
+            models.Follow,
+            models.Follow.follower_id == models.User.id
+        )
+        .filter(models.Follow.following_id == id)
+        .all()
+    )
+    
+    return followers
+
+
+@router.get("/{id}/following", response_model=List[schemas.UserResponse])
+def get_following(
+    id: int,
+    db: Session = Depends(database.get_db)
+):
+    following = (
+        db.query(models.User)
+        .join(
+            models.Follow,
+            models.Follow.following_id == models.User.id
+        )
+        .filter(models.Follow.follower_id == id)
+        .all()
+    )
+    
+    return following
