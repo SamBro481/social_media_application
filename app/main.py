@@ -1,15 +1,7 @@
 from fastapi import FastAPI
-from fastapi import Depends
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
-from fastapi import Query
-from sqlalchemy import func
 
 from . import database
 from . import models
-from . import schemas
-from . import oauth2
 
 from app.routers import users
 from app.routers import auth
