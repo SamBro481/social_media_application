@@ -5,6 +5,10 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
 
+from app.redis_client import redis_client
+import json
+from fastapi.encoders import jsonable_encoder
+
 from app import schemas, models, database, oauth2
 
 router = APIRouter(
@@ -19,6 +23,20 @@ def get_feed(
     limit: int = Query(default=10, le=100),
     offset: int = Query(default=0, ge=0)
 ):
+    
+    cache_key = f"feed:{current_user.id}:{limit}:{offset}"
+    
+    cached_feed = redis_client.get(cache_key)
+    
+    if cached_feed:
+
+        print("Cache HIT")
+
+        return json.loads(cached_feed)
+
+    print("Cache MISS")
+    
+    
     following = (
         db.query(models.Follow.following_id)
         .filter(models.Follow.follower_id == current_user.id)
@@ -41,4 +59,20 @@ def get_feed(
         .offset(offset)
         .all()
     )
-    return feed
+    
+    feed_response = [
+
+    schemas.PostVote(Post=row.Post, votes=row.votes)
+    for row in feed
+]
+    
+    feed_json = jsonable_encoder(feed_response)
+    
+    redis_client.set(
+        
+        cache_key,
+        json.dumps(feed_json),
+        ex=30
+
+    )
+    return feed_response
