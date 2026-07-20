@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
 
+from app.redis_client import redis_client
 from app import schemas, models, database, oauth2
 
 
@@ -32,6 +33,12 @@ def create_post(post: schemas.PostCreate,
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
+    
+    
+
+    for key in redis_client.scan_iter("feed:*"):
+        redis_client.delete(key)
+    
     
     return new_post
 
@@ -99,6 +106,9 @@ def delete_post(id: int,
     db.delete(post)
     db.commit()
     
+    for key in redis_client.scan_iter("feed:*"):
+        redis_client.delete(key)
+    
     return Response(
         status_code = status.HTTP_204_NO_CONTENT
     )
@@ -122,6 +132,10 @@ def update_post(id: int,
     
     post_query.update(post.model_dump(), synchronize_session=False)
     db.commit()
+    
+    for key in redis_client.scan_iter("feed:*"):
+        redis_client.delete(key)
+    
     
     return post_query.first()
 
